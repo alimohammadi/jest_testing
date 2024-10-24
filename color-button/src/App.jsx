@@ -15,7 +15,7 @@ function App() {
       <button
         onClick={() => setButtonColor(nextColorClass)}
         // className={className}
-        style={{ backgroundColor: buttonColor }}
+        style={{ backgroundColor: disabled ? "gray" : buttonColor }}
         disabled={disabled}
       >
         Change to {nextColorClass}

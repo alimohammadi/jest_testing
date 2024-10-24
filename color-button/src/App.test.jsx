@@ -1,5 +1,6 @@
 const { render, screen, fireEvent } = require("@testing-library/react");
 import App from "./App";
+import { kebabCaseToTitleCase } from "./helpers";
 
 test("button has correct initial color, and update when clicked", () => {
   render(<App />); // (1)
@@ -30,11 +31,6 @@ test("Initial Conditions", () => {
   // Check that the checkbox starts out unchecked
   const checkBox = screen.getByRole("checkbox");
   expect(checkBox).not.toBeChecked();
-
-  // fireEvent.click(checkBox);
-  // // Check that the button disabled after checkbox checked
-  // expect(buttonElement).not.toBeEnabled();
-  // expect(checkBox).toBeChecked();
 });
 
 test("Checkbox disables button on fist click and enable on secod click", () => {
@@ -48,6 +44,33 @@ test("Checkbox disables button on fist click and enable on secod click", () => {
   expect(buttonElement).not.toBeEnabled();
 
   fireEvent.click(checkBox);
-  
+
   expect(buttonElement).toBeEnabled();
+});
+
+test("Button color change when check box disable", () => {
+  render(<App />);
+
+  const buttonElement = screen.getByRole("button");
+  const checkBox = screen.getByRole("checkbox");
+
+  fireEvent.click(checkBox);
+  // Check that the button disabled after checkbox checked
+  expect(buttonElement).toHaveStyle({ backgroundColor: "rgb(128,128,128)" });
+
+  fireEvent.click(checkBox);
+
+  expect(buttonElement).toBeEnabled();
+});
+
+describe("kebabCaseToTitleCase", () => {
+  test("Works for no hypens", () => {
+    expect(kebabCaseToTitleCase("red")).toBe("Red");
+  });
+  test("Works for one hyphen", () => {
+    expect(kebabCaseToTitleCase("midnight-blue")).toBe("Midnight Blue");
+  });
+  test("Works for multiple inner hyphens", () => {
+    expect(kebabCaseToTitleCase("medium-violet-red")).toBe("Medium Violet Red");
+  });
 });

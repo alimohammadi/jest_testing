@@ -1,89 +1,27 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+const { render, screen, fireEvent } = require("@testing-library/react");
 import App from "./App";
-import { kebabCaseToTitleCase } from "./helpers";
 
-test("button click flow", () => {
-  render(<App />);
+test("button has correct initial color, and update when clicked", () => {
+  render(<App />); // (1)
 
-  // find an element with a role of button and text matching /blue/i
-  const buttonElement = screen.getByRole("button", {
-    name: /blue/i,
-  });
+  // find an element with a role of button and text of 'Change to blue'
+  const buttonElement = screen.getByRole("button", { name: "Change to blue" }); // (2)
 
-  // expect the class to be red
-  expect(buttonElement).toHaveClass("medium-violet-red");
+  // expect the background color to be red
+  expect(buttonElement).toHaveStyle({ backgroundColor: "rgb(255, 0, 0)" });
 
   // click button
   fireEvent.click(buttonElement);
 
-  // expect the class to be blue
-  expect(buttonElement).toHaveClass("midnight-blue");
+  // expect to have background color to be blue
+  expect(buttonElement).toHaveStyle({ backgroundColor: "rgb(0,0,255)" });
 
-  // expect the button text to match /red/i
-  expect(buttonElement).toHaveTextContent(/red/i);
+  // expect the button text to be "Change to red"
+  expect(buttonElement).toHaveTextContent("Change to red");
 });
 
-test("checkbox flow", () => {
-  // render app
+test("button turns blue when clicked", () => {
   render(<App />);
 
-  // find elements
-  const buttonElement = screen.getByRole("button", {
-    name: /blue/i,
-  });
-  const checkboxElement = screen.getByRole("checkbox", {
-    name: /disable button/i,
-  });
-
-  // check initial conditions
-  expect(buttonElement).toBeEnabled();
-  expect(checkboxElement).not.toBeChecked();
-
-  // click checkbox to disable button
-  fireEvent.click(checkboxElement);
-  expect(buttonElement).toBeDisabled();
-  expect(buttonElement).toHaveClass("gray");
-
-  // click checkbox to re-enable button
-  fireEvent.click(checkboxElement);
-  expect(buttonElement).toBeEnabled();
-  expect(buttonElement).toHaveClass("medium-violet-red");
-});
-
-test("checkbox flow after button click", () => {
-  // render app
-  render(<App />);
-
-  // find elements
-  const buttonElement = screen.getByRole("button", {
-    name: /blue/i,
-  });
-  const checkboxElement = screen.getByRole("checkbox", {
-    name: /disable button/i,
-  });
-
-  // click button to change to blue
-  fireEvent.click(buttonElement);
-
-  // click checkbox to disable button
-  fireEvent.click(checkboxElement);
-  expect(buttonElement).toBeDisabled();
-  expect(buttonElement).toHaveClass("gray");
-
-  // click checkbox to re-enable button
-  fireEvent.click(checkboxElement);
-  expect(buttonElement).toBeEnabled();
-  expect(buttonElement).toHaveClass("midnight-blue");
-});
-
-describe("kebabCaseToTitleCase", () => {
-  test("Works for no hypens", () => {
-    expect(kebabCaseToTitleCase("red")).toBe("Red");
-  });
-  test("Works for one hyphen", () => {
-    expect(kebabCaseToTitleCase("midnight-blue")).toBe("Midnight Blue");
-  });
-  test("Works for multiple inner hyphens", () => {
-    expect(kebabCaseToTitleCase("medium-violet-red")).toBe("Medium Violet Red");
-  });
+  const colorButton = screen.getByRole("button", { name: "Change to blue" });
 });

@@ -3,6 +3,7 @@ import ProductDetail from "../../src/components/ProductDetail";
 import { server } from "../mocks/server";
 import { http, HttpResponse } from "msw";
 import { db } from "../mocks/db";
+import AllProviders from "../AllProvider";
 
 describe("ProductDetail", () => {
   let productId: number;
@@ -17,7 +18,7 @@ describe("ProductDetail", () => {
   afterAll(() => db.product.delete({ where: { id: { equals: productId } } }));
 
   it("should render product details", async () => {
-    render(<ProductDetail productId={productId} />);
+    render(<ProductDetail productId={productId} />, { wrapper: AllProviders });
 
     const product = db.product.findFirst({
       where: { id: { equals: productId } },
@@ -45,14 +46,14 @@ describe("ProductDetail", () => {
   it("should render message if product not found", async () => {
     server.use(http.get("/products/:id", () => HttpResponse.json(null)));
 
-    render(<ProductDetail productId={1} />);
+    render(<ProductDetail productId={1} />, { wrapper: AllProviders });
 
     // The given product was not found.
     expect(await screen.findByText(/not found/i)).toBeInTheDocument();
   });
 
   it("should render an error for invalid product id", async () => {
-    render(<ProductDetail productId={0} />);
+    render(<ProductDetail productId={0} />, { wrapper: AllProviders });
 
     expect(await screen.findByText(/invalid/i)).toBeInTheDocument();
   });
@@ -60,7 +61,7 @@ describe("ProductDetail", () => {
   it("should render an error if data fetching fails", async () => {
     server.use(http.get("/products/:id", () => HttpResponse.error()));
 
-    render(<ProductDetail productId={1} />);
+    render(<ProductDetail productId={1} />, { wrapper: AllProviders });
 
     expect(await screen.findByText(/error/i)).toBeInTheDocument();
   });

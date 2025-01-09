@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { render, screen } from "@testing-library/react";
 import ProductForm from "../../src/components/ProductForm";
 import AllProviders from "../AllProvider";
@@ -24,11 +28,50 @@ describe("ProductForm", () => {
     return {
       waitForFormToLoad: async () => {
         await screen.findByRole("form");
+
+        const nameInput = screen.getByPlaceholderText(/name/i);
+        const priceInput = screen.getByPlaceholderText(/price/i);
+        const categoryInput = screen.getByRole("combobox", {
+          name: /category/i,
+        });
+        const submitButton = screen.getByRole("button");
+
+        type FormData = { [key in keyof Product]: any };
+
+        const validData: FormData = {
+          id: 1,
+          name: "a",
+          price: 1,
+          categoryId: 1,
+        };
+
+        const fill = async (product: FormData) => {
+          const user = userEvent.setup();
+          if (product.name !== undefined)
+            await user.type(nameInput, product.name);
+
+          if (product.price !== undefined)
+            await user.type(priceInput, product.price.toString());
+
+          await user.click(categoryInput);
+          const options = screen.getAllByRole("option");
+          await user.click(options[0]);
+          await user.click(submitButton);
+        };
+
         return {
-          nameInput: screen.getByPlaceholderText(/name/i),
-          priceInput: screen.getByPlaceholderText(/price/i),
+          expectErrorToBeInDocument: (errorMessage: RegExp) => {
+            const error = screen.getByRole("alert");
+
+            expect(error).toBeInTheDocument();
+            expect(error).toHaveTextContent(errorMessage);
+          },
+          nameInput,
+          priceInput,
           categoryInput: screen.getByRole("combobox", { name: /category/i }),
           submitButton: screen.getByRole("button"),
+          fill,
+          validData,
         };
       },
     };
@@ -73,23 +116,58 @@ describe("ProductForm", () => {
     expect(nameInput).toHaveFocus();
   });
 
-  it("should display an error if name is missing", async () => {
-    const { waitForFormToLoad } = renderComponent();
+  it.each([
+    { senario: "missing", errorMessage: /required/i },
+    {
+      senario: "longer than 255 characters",
+      name: "a".repeat(256),
+      errorMessage: /255/i,
+    },
+  ])(
+    "should display an error if name is $senario",
+    async ({ name, errorMessage }) => {
+      const { waitForFormToLoad } = renderComponent();
 
-    const form = await waitForFormToLoad();
+      const form = await waitForFormToLoad();
 
-    // Act part
-    const user = userEvent.setup();
+      await form.fill({ ...form.validData, name });
 
-    await user.type(form.priceInput, "10");
-    await user.click(form.categoryInput);
-    const options = screen.getAllByRole("option");
-    await user.click(options[0]);
-    await user.click(form.submitButton);
+      form.expectErrorToBeInDocument(errorMessage);
+    }
+  );
 
-    const error = screen.getByRole("alert");
+  it.each([
+    { senario: "missing", errorMessage: /required/i },
+    {
+      senario: "0",
+      price: 0,
+      errorMessage: /1/i,
+    },
+    {
+      senario: "negative",
+      price: -1,
+      errorMessage: /1/i,
+    },
+    {
+      senario: "greater than 1000",
+      price: 1001,
+      errorMessage: /1000/i,
+    },
+    {
+      senario: "nut a number",
+      price: "a",
+      errorMessage: /required/i,
+    },
+  ])(
+    "should display an error if price is $senario",
+    async ({ price, errorMessage }) => {
+      const { waitForFormToLoad } = renderComponent();
 
-    expect(error).toBeInTheDocument();
-    expect(error).toHaveTextContent(/required/i);
-  });
+      const form = await waitForFormToLoad();
+
+      await form.fill({ ...form.validData, price });
+
+      form.expectErrorToBeInDocument(errorMessage);
+    }
+  );
 });

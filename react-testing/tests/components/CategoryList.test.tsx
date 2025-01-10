@@ -5,9 +5,9 @@ import {
 } from "@testing-library/react";
 import { Category } from "../../src/entities";
 import { db } from "../mocks/db";
-import ReduxProvider from "../../src/providers/ReduxProvider";
 import CategoryList from "../../src/components/CategoryList";
 import { simulateDelay, simulateError } from "../utils";
+import AllProviders from "../AllProvider";
 
 describe("CategoryList", () => {
   const categories: Category[] = [];
@@ -26,11 +26,7 @@ describe("CategoryList", () => {
   });
 
   const renderComponent = () => {
-    render(
-      <ReduxProvider>
-        <CategoryList />
-      </ReduxProvider>
-    );
+    render(<CategoryList />, { wrapper: AllProviders });
   };
 
   it("should render a list of categories", async () => {
@@ -54,7 +50,7 @@ describe("CategoryList", () => {
   it("should render error message if fetching categories fails", async () => {
     simulateError("/categories");
     renderComponent();
-    
+
     expect(await screen.findByText(/error/i)).toBeInTheDocument();
   });
 });
